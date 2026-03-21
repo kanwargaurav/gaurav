@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "cover",
       "backgroundColor": "#07090F"
     },
@@ -47,22 +47,7 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router",
-      "expo-notifications",
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow FLOCK to access your location"
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Allow FLOCK to access your photos",
-          "cameraPermission": "Allow FLOCK to use your camera"
-        }
-      ],
-      "expo-av"
+      "expo-router"
     ],
     "scheme": "flock",
     "extra": {

@@ -1,28 +1,24 @@
-import React, { useEffect } from 'react'
-import { View, Text } from 'react-native'
-import { useRouter } from 'expo-router'
-import { supabase } from '../lib/supabase'
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '../lib/supabase';
 
 export default function Index() {
-  const router = useRouter()
-  const [isReady, setIsReady] = React.useState(false)
+  const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
+    supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
-        router.replace('/(tabs)/explore')
+        router.replace('/(tabs)/explore');
       } else {
-        router.replace('/(auth)/welcome')
+        router.replace('/(auth)/welcome');
       }
-      setIsReady(true)
-    }
-    checkSession()
-  }, [])
+    });
+  }, []);
 
   return (
-    <View className="flex-1 justify-center items-center bg-dark-bg">
-      <Text className="text-dark-text text-lg">Loading FLOCK...</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#07090F' }}>
+      <ActivityIndicator size="large" color="#FF5533" />
     </View>
-  )
+  );
 }

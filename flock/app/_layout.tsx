@@ -1,38 +1,24 @@
-import React, { useEffect } from 'react'
-import { Stack } from 'expo-router'
-import { useFonts } from 'expo-font'
-import * as SplashScreen from 'expo-splash-screen'
-import { useColorScheme } from 'react-native'
+import React, { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import '../global.css';
 
-SplashScreen.preventAutoHideAsync()
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme()
-  const [fontsLoaded] = useFonts({
-    'Cormorant-Bold': require('../assets/fonts/Cormorant.ttf'),
-    'Outfit-Regular': require('../assets/fonts/Outfit.ttf'),
-  })
-
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync()
-    }
-  }, [fontsLoaded])
-
-  if (!fontsLoaded) {
-    return null
-  }
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: true,
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
-  )
+    <>
+      <StatusBar style="light" backgroundColor="#07090F" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </>
+  );
 }
