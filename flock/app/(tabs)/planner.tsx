@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, SafeAreaView
 } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 interface Message { role: 'user' | 'assistant'; content: string; id: string }
@@ -22,11 +23,19 @@ const AI_ENDPOINT = typeof window !== 'undefined' && window.location.hostname ==
   : `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-chat`;
 
 export default function Planner() {
+  const { prompt: initialPrompt } = useLocalSearchParams<{ prompt?: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
   const listRef = useRef<FlatList>(null);
+
+  // Auto-send if navigated here from a destination detail
+  useEffect(() => {
+    if (initialPrompt && messages.length === 0) {
+      setInput(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const isEmpty = messages.length === 0;
   const guestLimit = 5;
