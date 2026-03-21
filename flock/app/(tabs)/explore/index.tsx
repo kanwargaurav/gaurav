@@ -1,45 +1,75 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
-import { Destinations, type Destination } from '../../../constants/destinations';
+import { supabase } from '../../../lib/supabase';
+
+type Destination = {
+  id: string;
+  place: string;
+  country: string;
+  emoji: string;
+  description: string;
+  days_rec: number;
+  budget_usd: number;
+  rating: number;
+  clone_count: number;
+  tags: string[];
+  is_featured: boolean;
+};
+
+const TAGS = ['All', 'Romance', 'Food', 'Adventure', 'Culture', 'Nature', 'Solo', 'Family', 'Friends', 'Budget', 'Luxury', 'Beach', 'Urban'];
 
 export default function Explore() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tags = ['All', 'beach', 'mountains', 'city', 'history', 'food', 'adventure', 'wellness', 'luxury', 'budget'];
+  useEffect(() => {
+    supabase
+      .from('destinations')
+      .select('id, place, country, emoji, description, days_rec, budget_usd, rating, clone_count, tags, is_featured')
+      .order('clone_count', { ascending: false })
+      .then(({ data, error }) => {
+        if (data) setDestinations(data as Destination[]);
+        if (error) console.warn('Destinations fetch error:', error.message);
+        setLoading(false);
+      });
+  }, []);
 
-  const filtered = Destinations.filter(d => {
-    const matchSearch = !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.country.toLowerCase().includes(search.toLowerCase());
-    const matchTag = !selectedTag || selectedTag === 'All' || d.tags.includes(selectedTag);
+  const filtered = destinations.filter(d => {
+    const q = search.toLowerCase();
+    const matchSearch = !search || d.place.toLowerCase().includes(q) || (d.country ?? '').toLowerCase().includes(q);
+    const matchTag = !selectedTag || selectedTag === 'All' || (d.tags ?? []).includes(selectedTag);
     return matchSearch && matchTag;
   });
 
   const renderCard = ({ item }: { item: Destination }) => (
-    <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: '/(tabs)/explore/[id]', params: { id: item.id } } as any)} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push({ pathname: '/(tabs)/explore/[id]', params: { id: item.id } } as any)}
+      activeOpacity={0.8}
+    >
       <View style={styles.cardTop}>
         <Text style={styles.cardEmoji}>{item.emoji}</Text>
         <View style={styles.cardInfo}>
-          <Text style={styles.cardName}>{item.name}</Text>
+          <Text style={styles.cardName}>{item.place}</Text>
           <Text style={styles.cardCountry}>{item.country}</Text>
         </View>
         <View style={styles.ratingBadge}>
-          <Text style={styles.ratingText}>⭐ {item.ratingAverage}</Text>
+          <Text style={styles.ratingText}>⭐ {item.rating}</Text>
         </View>
       </View>
       <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
       <View style={styles.cardFooter}>
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{item.days} days</Text>
+          <Text style={styles.metaText}>{item.days_rec} days</Text>
           <Text style={styles.metaDot}>·</Text>
-          <Text style={styles.metaText}>${item.budgetUSD.toLocaleString()}</Text>
-          <Text style={styles.metaDot}>·</Text>
-          <Text style={styles.metaText}>{item.bestSeason.split(',')[0]}</Text>
+          <Text style={styles.metaText}>${(item.budget_usd ?? 0).toLocaleString()}</Text>
         </View>
         <View style={styles.cloneBadge}>
-          <Text style={styles.cloneText}>⚡ {item.cloneCount}</Text>
+          <Text style={styles.cloneText}>⚡ {(item.clone_count ?? 0).toLocaleString()}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -47,15 +77,13 @@ export default function Explore() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Explore</Text>
         <Text style={styles.headerSubtitle}>Where will your flock fly? 🐦</Text>
       </View>
 
-      {/* Search */}
       <View style={styles.searchRow}>
-        <Feather name="search" size={16} color="rgba(237,232,223,0.4)" style={styles.searchIcon} />
+        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Search destinations..."
@@ -65,9 +93,8 @@ export default function Explore() {
         />
       </View>
 
-      {/* Tag filter */}
       <FlatList
-        data={tags}
+        data={TAGS}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={t => t}
@@ -79,26 +106,32 @@ export default function Explore() {
             onPress={() => setSelectedTag(tag === 'All' ? null : tag)}
           >
             <Text style={[styles.tagText, (selectedTag === tag || (!selectedTag && tag === 'All')) && styles.tagTextActive]}>
-              {tag === 'All' ? 'All' : tag.charAt(0).toUpperCase() + tag.slice(1)}
+              {tag}
             </Text>
           </TouchableOpacity>
         )}
       />
 
-      {/* Destination grid */}
-      <FlatList
-        data={filtered}
-        renderItem={renderCard}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🌍</Text>
-            <Text style={styles.emptyText}>No destinations match your search</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF5533" />
+          <Text style={styles.loadingText}>Loading destinations...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          renderItem={renderCard}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>🌍</Text>
+              <Text style={styles.emptyText}>No destinations match your search</Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -111,13 +144,15 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 32, fontWeight: '800', color: C.text },
   headerSubtitle: { fontSize: 14, color: C.muted, marginTop: 2 },
   searchRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14 },
-  searchIcon: { marginRight: 8 },
+  searchIcon: { marginRight: 8, fontSize: 14 },
   searchInput: { flex: 1, paddingVertical: 12, color: C.text, fontSize: 15 },
-  tagList: { marginBottom: 12 },
-  tag: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, backgroundColor: C.surface, marginRight: 8, borderWidth: 1, borderColor: C.border },
+  tagList: { marginBottom: 12, flexGrow: 0 },
+  tag: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, backgroundColor: C.surface, marginRight: 8, borderWidth: 1, borderColor: C.border, alignSelf: 'flex-start' },
   tagActive: { backgroundColor: C.coral, borderColor: C.coral },
   tagText: { color: C.muted, fontSize: 13, fontWeight: '600' },
   tagTextActive: { color: '#fff' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  loadingText: { color: C.muted, fontSize: 14 },
   list: { paddingHorizontal: 16, paddingBottom: 24 },
   card: { backgroundColor: C.surface, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: C.border },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
