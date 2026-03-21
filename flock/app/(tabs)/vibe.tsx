@@ -1,13 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth';
 import { Vibes } from '../../constants/vibes';
 import { Personas } from '../../constants/personas';
 
+type Destination = {
+  id: string;
+  place: string;
+  country: string;
+  emoji: string;
+  description: string;
+  days_rec: number;
+  budget_usd: number;
+  rating: number;
+  tags: string[];
+};
+
+const BUDGETS = [
+  { id: 'budget', label: '💰 Budget', desc: 'Under $1,000', max: 1000 },
+  { id: 'mid', label: '✈️ Mid-range', desc: '$1k – $3k', max: 3000 },
+  { id: 'premium', label: '⭐ Premium', desc: '$3k – $7k', max: 7000 },
+  { id: 'luxury', label: '💎 Luxury', desc: '$7k+', max: 999999 },
+];
+
 export default function VibeScreen() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [budget, setBudget] = useState<string | null>(null);
+  const [matches, setMatches] = useState<Destination[]>([]);
+  const [loadingResults, setLoadingResults] = useState(false);
 
   const togglePersona = (id: string) => setSelectedPersonas(prev =>
     prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
@@ -17,20 +43,56 @@ export default function VibeScreen() {
     prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]
   );
 
-  const budgets = [
-    { id: 'budget', label: '💰 Budget', desc: 'Under $1,000' },
-    { id: 'mid', label: '✈️ Mid-range', desc: '$1k – $3k' },
-    { id: 'premium', label: '⭐ Premium', desc: '$3k – $7k' },
-    { id: 'luxury', label: '💎 Luxury', desc: '$7k+' },
-  ];
+  const handleFinish = async () => {
+    setLoadingResults(true);
+
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({
+          persona: selectedPersonas[0] ?? null,
+          vibe_profile: { personas: selectedPersonas, vibes: selectedVibes, budget },
+          budget_style: budget,
+        })
+        .eq('id', user.id);
+    }
+
+    const vibeNames = selectedVibes.map(id => Vibes.find(v => v.id === id)?.name).filter(Boolean) as string[];
+    const budgetMax = BUDGETS.find(b => b.id === budget)?.max ?? 999999;
+
+    const { data } = await supabase
+      .from('destinations')
+      .select('id, place, country, emoji, description, days_rec, budget_usd, rating, tags')
+      .lte('budget_usd', budgetMax)
+      .order('clone_count', { ascending: false });
+
+    if (data) {
+      const scored = (data as Destination[]).map(d => ({
+        ...d,
+        score: (d.tags ?? []).filter(t => vibeNames.some(v => v.toLowerCase() === t.toLowerCase())).length,
+      })).sort((a, b) => (b as any).score - (a as any).score);
+      setMatches(scored.slice(0, 5));
+    }
+
+    setLoadingResults(false);
+    setStep(3);
+  };
+
+  const handleReset = () => {
+    setStep(0);
+    setSelectedPersonas([]);
+    setSelectedVibes([]);
+    setBudget(null);
+    setMatches([]);
+  };
 
   if (step === 3) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.resultContainer}>
+        <ScrollView contentContainerStyle={styles.resultContainer} showsVerticalScrollIndicator={false}>
           <Text style={styles.resultEmoji}>🐦</Text>
           <Text style={styles.resultTitle}>Your Vibe DNA</Text>
-          <Text style={styles.resultSub}>Here's what makes you, you</Text>
+          <Text style={styles.resultSub}>{user ? '✅ Saved to your profile' : 'Sign in to save your vibe'}</Text>
 
           <View style={styles.dnaCard}>
             <View style={styles.dnaSection}>
@@ -47,7 +109,7 @@ export default function VibeScreen() {
             <View style={styles.dnaSection}>
               <Text style={styles.dnaLabel}>Top Vibes</Text>
               <View style={styles.dnaTags}>
-                {selectedVibes.slice(0, 4).map(id => (
+                {selectedVibes.slice(0, 6).map(id => (
                   <View key={id} style={styles.dnaTag}>
                     <Text style={styles.dnaTagText}>{Vibes.find(v => v.id === id)?.emoji} {Vibes.find(v => v.id === id)?.name}</Text>
                   </View>
@@ -57,12 +119,44 @@ export default function VibeScreen() {
             <View style={styles.dnaDivider} />
             <View style={styles.dnaSection}>
               <Text style={styles.dnaLabel}>Budget</Text>
-              <Text style={styles.dnaValue}>{budgets.find(b => b.id === budget)?.label ?? '—'}</Text>
+              <Text style={styles.dnaValue}>{BUDGETS.find(b => b.id === budget)?.label ?? '—'}</Text>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => setStep(0)}>
-            <Text style={styles.primaryBtnText}>Update My Vibe</Text>
+          {matches.length > 0 && (
+            <View style={styles.matchSection}>
+              <Text style={styles.matchTitle}>🎯 Perfect matches for you</Text>
+              <Text style={styles.matchSub}>Based on your vibe DNA</Text>
+              {matches.map(dest => (
+                <TouchableOpacity
+                  key={dest.id}
+                  style={styles.matchCard}
+                  onPress={() => router.push({ pathname: '/(tabs)/explore/[id]', params: { id: dest.id } } as any)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.matchEmoji}>{dest.emoji}</Text>
+                  <View style={styles.matchInfo}>
+                    <Text style={styles.matchName}>{dest.place}</Text>
+                    <Text style={styles.matchCountry}>{dest.country}</Text>
+                    <Text style={styles.matchDesc} numberOfLines={1}>{dest.description}</Text>
+                  </View>
+                  <View style={styles.matchMeta}>
+                    <Text style={styles.matchRating}>⭐ {dest.rating}</Text>
+                    <Text style={styles.matchBudget}>${(dest.budget_usd / 1000).toFixed(1)}k</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {!user && (
+            <TouchableOpacity style={styles.saveBtn} onPress={() => router.push('/(auth)/signup')} activeOpacity={0.85}>
+              <Text style={styles.saveBtnText}>🔒 Save your Vibe DNA</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity style={styles.resetBtn} onPress={handleReset} activeOpacity={0.85}>
+            <Text style={styles.resetBtnText}>Update My Vibe</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -72,7 +166,6 @@ export default function VibeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Progress */}
         <View style={styles.progressRow}>
           {[0, 1, 2].map(i => (
             <View key={i} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
@@ -143,7 +236,7 @@ export default function VibeScreen() {
           <View style={styles.stepContainer}>
             <Text style={styles.stepTitle}>What's your travel budget?</Text>
             <Text style={styles.stepSub}>Per person, per trip</Text>
-            {budgets.map(b => (
+            {BUDGETS.map(b => (
               <TouchableOpacity
                 key={b.id}
                 style={[styles.budgetCard, budget === b.id && styles.budgetCardActive]}
@@ -159,11 +252,14 @@ export default function VibeScreen() {
                 <Text style={styles.backBtnText}>← Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.primaryBtn, styles.primaryBtnFlex, !budget && styles.primaryBtnDisabled]}
-                disabled={!budget}
-                onPress={() => setStep(3)}
+                style={[styles.primaryBtn, styles.primaryBtnFlex, (!budget || loadingResults) && styles.primaryBtnDisabled]}
+                disabled={!budget || loadingResults}
+                onPress={handleFinish}
               >
-                <Text style={styles.primaryBtnText}>See My Vibe DNA ✨</Text>
+                {loadingResults
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.primaryBtnText}>See My Vibe DNA ✨</Text>
+                }
               </TouchableOpacity>
             </View>
           </View>
@@ -203,10 +299,10 @@ const styles = StyleSheet.create({
   primaryBtnFlex: { flex: 1, marginTop: 0 },
   primaryBtnDisabled: { opacity: 0.4 },
   primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  resultContainer: { padding: 24, alignItems: 'center' },
+  resultContainer: { padding: 24, alignItems: 'center', paddingBottom: 48 },
   resultEmoji: { fontSize: 64, marginBottom: 16, marginTop: 20 },
   resultTitle: { fontSize: 32, fontWeight: '800', color: C.text, marginBottom: 6 },
-  resultSub: { fontSize: 15, color: C.muted, marginBottom: 32 },
+  resultSub: { fontSize: 14, color: C.muted, marginBottom: 28 },
   dnaCard: { backgroundColor: C.surface, borderRadius: 20, padding: 24, width: '100%', borderWidth: 1, borderColor: C.border, marginBottom: 32 },
   dnaSection: { marginBottom: 4 },
   dnaLabel: { fontSize: 12, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
@@ -215,4 +311,20 @@ const styles = StyleSheet.create({
   dnaTagText: { color: C.coral, fontSize: 13, fontWeight: '600' },
   dnaValue: { color: C.text, fontSize: 15, fontWeight: '600' },
   dnaDivider: { height: 1, backgroundColor: C.border, marginVertical: 16 },
+  matchSection: { width: '100%', marginBottom: 24 },
+  matchTitle: { fontSize: 20, fontWeight: '700', color: C.text, marginBottom: 4 },
+  matchSub: { fontSize: 13, color: C.muted, marginBottom: 16 },
+  matchCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, gap: 12 },
+  matchEmoji: { fontSize: 32 },
+  matchInfo: { flex: 1 },
+  matchName: { fontSize: 16, fontWeight: '700', color: C.text },
+  matchCountry: { fontSize: 12, color: C.muted, marginTop: 2 },
+  matchDesc: { fontSize: 12, color: C.muted, marginTop: 4 },
+  matchMeta: { alignItems: 'flex-end', gap: 4 },
+  matchRating: { fontSize: 12, color: '#F5A020', fontWeight: '600' },
+  matchBudget: { fontSize: 12, color: C.coral, fontWeight: '600' },
+  saveBtn: { backgroundColor: C.coral, borderRadius: 14, paddingVertical: 16, alignItems: 'center', width: '100%', marginBottom: 12 },
+  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  resetBtn: { borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingVertical: 16, alignItems: 'center', width: '100%' },
+  resetBtnText: { color: C.muted, fontSize: 15, fontWeight: '600' },
 });

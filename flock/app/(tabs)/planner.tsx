@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
-  StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, SafeAreaView
+  StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, SafeAreaView, Alert
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Message { role: 'user' | 'assistant'; content: string; id: string }
 
@@ -24,25 +26,57 @@ const AI_ENDPOINT = typeof window !== 'undefined' && window.location.hostname ==
 
 export default function Planner() {
   const { prompt: initialPrompt } = useLocalSearchParams<{ prompt?: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
+  const [saving, setSaving] = useState(false);
   const listRef = useRef<FlatList>(null);
 
-  // Auto-send if navigated here from a destination detail
+  const guestLimit = 5;
+  const isLimited = !user && guestCount >= guestLimit;
+
   useEffect(() => {
     if (initialPrompt && messages.length === 0) {
       setInput(initialPrompt);
     }
   }, [initialPrompt]);
 
+  const handleSaveTrip = async () => {
+    if (!user) {
+      Alert.alert('Sign in to save', 'Create a free account to save this itinerary.', [
+        { text: 'Sign In', onPress: () => router.push('/(auth)/login') },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+      return;
+    }
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    const lastAiMsg = [...messages].reverse().find(m => m.role === 'assistant');
+    if (!lastUserMsg || !lastAiMsg) return;
+    setSaving(true);
+    const title = lastUserMsg.content.slice(0, 60).replace(/^[^\w]+/, '');
+    await supabase.from('trips').insert({
+      user_id: user.id,
+      title: title || 'AI Trip Plan',
+      cover_emoji: '🤖',
+      ai_summary: lastAiMsg.content.slice(0, 500),
+      ai_chat_log: messages.map(m => ({ role: m.role, content: m.content })),
+      status: 'planning',
+    });
+    setSaving(false);
+    Alert.alert('✅ Trip saved!', 'Find it in your Profile.', [
+      { text: 'View Profile', onPress: () => router.push('/(tabs)/profile') },
+      { text: 'Keep Planning', style: 'cancel' },
+    ]);
+  };
+
   const isEmpty = messages.length === 0;
-  const guestLimit = 5;
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return;
-    if (guestCount >= guestLimit) return;
+    if (isLimited) return;
 
     const userMsg: Message = { role: 'user', content: text.trim(), id: Date.now().toString() };
     const updated = [...messages, userMsg];
@@ -94,8 +128,17 @@ export default function Planner() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>🐦 AI Planner</Text>
-          <Text style={styles.headerSub}>Powered by Claude • {guestLimit - guestCount} free messages left</Text>
+          <View>
+            <Text style={styles.headerTitle}>🐦 AI Planner</Text>
+            <Text style={styles.headerSub}>
+              {user ? 'Powered by Claude · Unlimited' : `Powered by Claude · ${guestLimit - guestCount} free messages left`}
+            </Text>
+          </View>
+          {messages.length > 1 && (
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveTrip} disabled={saving} activeOpacity={0.85}>
+              {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.saveBtnText}>Save</Text>}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Chat or empty state */}
@@ -129,10 +172,10 @@ export default function Planner() {
         )}
 
         {/* Limit warning */}
-        {guestCount >= guestLimit && (
-          <View style={styles.limitBanner}>
-            <Text style={styles.limitText}>🔒 Sign in for unlimited AI planning</Text>
-          </View>
+        {isLimited && (
+          <TouchableOpacity style={styles.limitBanner} onPress={() => router.push('/(auth)/login')} activeOpacity={0.85}>
+            <Text style={styles.limitText}>🔒 Sign in for unlimited AI planning →</Text>
+          </TouchableOpacity>
         )}
 
         {/* Input bar */}
@@ -145,12 +188,12 @@ export default function Planner() {
             onChangeText={setInput}
             multiline
             maxLength={500}
-            editable={guestCount < guestLimit}
+            editable={!isLimited}
           />
           <TouchableOpacity
-            style={[styles.sendBtn, (!input.trim() || loading || guestCount >= guestLimit) && styles.sendBtnDisabled]}
+            style={[styles.sendBtn, (!input.trim() || loading || isLimited) && styles.sendBtnDisabled]}
             onPress={() => sendMessage(input)}
-            disabled={!input.trim() || loading || guestCount >= guestLimit}
+            disabled={!input.trim() || loading || isLimited}
             activeOpacity={0.85}
           >
             <Feather name="send" size={18} color="#fff" />
@@ -166,9 +209,11 @@ const C = { bg: '#07090F', surface: '#0E1219', surfaceHigh: '#131926', text: '#E
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   flex: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.border },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.border },
   headerTitle: { fontSize: 20, fontWeight: '700', color: C.text },
   headerSub: { fontSize: 12, color: C.muted, marginTop: 2 },
+  saveBtn: { backgroundColor: C.coral, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  saveBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   emptyContainer: { flex: 1, padding: 20 },
   emptyTitle: { fontSize: 26, fontWeight: '700', color: C.text, marginBottom: 8 },
   emptySub: { fontSize: 14, color: C.muted, lineHeight: 21, marginBottom: 24 },
