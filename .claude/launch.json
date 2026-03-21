@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "FLOCK Web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["start-web.sh"],
+      "port": 8081
+    },
+    {
+      "name": "FLOCK AI Proxy",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["start-proxy.sh"],
+      "port": 3001
+    }
+  ]
+}
