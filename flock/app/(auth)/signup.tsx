@@ -11,7 +11,7 @@ export default function Signup() {
   const handleSignup = async () => {
     if (!email) { Alert.alert('Enter your email first'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'flock://auth/callback' } });
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${process.env.EXPO_PUBLIC_APP_URL ?? 'https://doanything.ai'}` } });
     setLoading(false);
     if (error) { Alert.alert('Error', error.message); }
     else { Alert.alert('✅ Check your email!', 'We sent a sign-in link. Tap it to create your FLOCK account.'); }

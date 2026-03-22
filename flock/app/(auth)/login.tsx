@@ -11,7 +11,7 @@ export default function Login() {
   const handleMagicLink = async () => {
     if (!email) { Alert.alert('Enter your email first'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'flock://auth/callback' } });
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${process.env.EXPO_PUBLIC_APP_URL ?? 'https://doanything.ai'}` } });
     setLoading(false);
     if (error) { Alert.alert('Error', error.message); }
     else { Alert.alert('✅ Magic link sent!', 'Check your email and tap the link to sign in.'); }
