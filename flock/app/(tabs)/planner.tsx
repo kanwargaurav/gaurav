@@ -19,10 +19,10 @@ const STARTER_PROMPTS = [
   '🌿 2-week adventure in Costa Rica — nature + hiking',
 ];
 
-// Dev: local proxy on port 3001. Prod: Supabase Edge Function
+// Dev: local proxy on port 3001. Prod: Vercel serverless function at /api/ai-chat
 const AI_ENDPOINT = typeof window !== 'undefined' && window.location.hostname === 'localhost'
   ? 'http://localhost:3001/ai-chat'
-  : `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-chat`;
+  : '/api/ai-chat';
 
 export default function Planner() {
   const { prompt: initialPrompt } = useLocalSearchParams<{ prompt?: string }>();
