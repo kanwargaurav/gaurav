@@ -126,7 +126,7 @@ export default function Explore() {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.tagList}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4, alignItems: 'center' }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6, alignItems: 'center' }}
       >
         {TAGS.map(tag => {
           const isActive = selectedTag === tag || (!selectedTag && tag === 'All');
@@ -187,15 +187,15 @@ const styles = StyleSheet.create({
   },
   searchIcon: { marginRight: 8, fontSize: 14 },
   searchInput: { flex: 1, paddingVertical: 13, fontSize: 15 },
-  tagList: { marginBottom: 16, flexGrow: 0, maxHeight: 52 },
+  tagList: { marginBottom: 16, flexGrow: 0, maxHeight: 60 },
   tag: {
-    paddingHorizontal: 18,
-    paddingVertical: 9,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
     borderRadius: 100,
-    marginRight: 8,
-    borderWidth: 1,
+    marginRight: 10,
+    borderWidth: 1.5,
   },
-  tagText: { fontSize: 13, fontWeight: '600' },
+  tagText: { fontSize: 15, fontWeight: '600' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   loadingText: { fontSize: 14 },
   list: { paddingHorizontal: 16, paddingBottom: 24 },
