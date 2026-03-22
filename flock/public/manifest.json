@@ -1,0 +1,16 @@
+{
+  "name": "FLOCK — AI Travel Companion",
+  "short_name": "FLOCK",
+  "description": "AI-powered travel planning. Your world. Your flock. Fly together.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FF5533",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/assets/icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/favicon.png", "sizes": "32x32", "type": "image/png" }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "lang": "en"
+}

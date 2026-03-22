@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { supabase } from '../lib/supabase';
 import { ThemeProvider, useTheme } from '../hooks/useTheme';
+import PWAInstallBanner from '../components/PWAInstallBanner';
 import '../global.css';
 
 SplashScreen.preventAutoHideAsync();
@@ -45,6 +47,7 @@ function RootLayoutInner() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
       </Stack>
+      {Platform.OS === 'web' && <PWAInstallBanner />}
     </>
   );
 }

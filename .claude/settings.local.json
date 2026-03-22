@@ -34,7 +34,7 @@
       "Bash(vercel --version)",
       "Bash(vercel deploy:*)",
       "Bash(vercel domains:*)",
-"Bash(vercel env:*)",
+      "Bash(vercel env:*)",
       "Bash(export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" npx expo export --platform web)",
       "Bash(curl -s -X POST https://www.doanything.ai/api/ai-chat -H \"Content-Type: application/json\" -d '{\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"Plan a quick 2-day trip to Tokyo\"\"\"\"}]}')",
       "Bash(export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" vercel logs https://www.doanything.ai --since 5m)",
@@ -45,7 +45,10 @@
       "Bash(cat \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/_layout.tsx\")",
       "Bash(cat '/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/explore/index.tsx')",
       "Bash(ls \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/\")",
-      "Bash(cat '/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/planner.tsx')"
+      "Bash(cat '/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/planner.tsx')",
+      "Bash(FLOCK=\"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" rm -rf \"$FLOCK/.vercel/output/static\" mkdir -p \"$FLOCK/.vercel/output/static\" cp -r \"$FLOCK/dist/.\" \"$FLOCK/.vercel/output/static/\" export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"$FLOCK\" vercel deploy --prebuilt --prod)",
+      "Bash(cat \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/vibe.tsx\")",
+      "Bash(cat \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/memories.tsx\")"
     ]
   }
 }

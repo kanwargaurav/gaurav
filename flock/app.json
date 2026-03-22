@@ -44,7 +44,14 @@
     "web": {
       "output": "static",
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "FLOCK — AI Travel Companion",
+      "shortName": "FLOCK",
+      "themeColor": "#FF5533",
+      "backgroundColor": "#FFFFFF",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "en"
     },
     "plugins": [
       "expo-router"
