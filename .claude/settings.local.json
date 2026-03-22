@@ -25,7 +25,27 @@
       "Bash(curl -s http://localhost:8081/)",
       "Bash(curl -s http://localhost:3001/health)",
       "Bash(curl -s -X POST http://localhost:3001/ai-chat -H \"Content-Type: application/json\" -d '{\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"Plan a 3-day trip to Paris for a couple\"\"\"\"}]}')",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''AI RESPONSE:'''', d.get\\(''''content'''',''''''''\\)[:400]\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''AI RESPONSE:'''', d.get\\(''''content'''',''''''''\\)[:400]\\)\")",
+      "Bash(cat \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(auth\\)/welcome.tsx\")",
+      "Bash(head -20 \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/planner.tsx\")",
+      "Bash(curl -s \"https://fkftpleillvmjeehderk.supabase.co/rest/v1/destinations?select=id&limit=1\" -H \"apikey: sb_publishable_gxZ290DaoP-gsFhFFzpT1w_4I8s983r\" -H \"Authorization: Bearer sb_publishable_gxZ290DaoP-gsFhFFzpT1w_4I8s983r\")",
+      "Bash(/usr/local/Cellar/node/25.8.1_1/bin/npx expo:*)",
+      "Bash(npx expo:*)",
+      "Bash(vercel --version)",
+      "Bash(vercel deploy:*)",
+      "Bash(vercel domains:*)",
+"Bash(vercel env:*)",
+      "Bash(export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" npx expo export --platform web)",
+      "Bash(curl -s -X POST https://www.doanything.ai/api/ai-chat -H \"Content-Type: application/json\" -d '{\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"Plan a quick 2-day trip to Tokyo\"\"\"\"}]}')",
+      "Bash(export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" vercel logs https://www.doanything.ai --since 5m)",
+      "Bash(export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" vercel inspect dpl_CsCVtZZYWmnwCXaSyg2wYY6aoSAV)",
+      "Bash(export PATH=\"/usr/local/Cellar/node/25.8.1_1/bin:/usr/local/bin:$PATH\" cd \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock\" vercel deploy --prebuilt --prod)",
+      "Bash(curl -s -X POST https://www.doanything.ai/api/ai-chat -H \"Content-Type: application/json\" -d '{\"\"\"\"messages\"\"\"\":[{\"\"\"\"role\"\"\"\":\"\"\"\"user\"\"\"\",\"\"\"\"content\"\"\"\":\"\"\"\"Plan a quick 2-day trip to Tokyo. Keep it short.\"\"\"\"}]}')",
+      "Bash(cat '/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(auth\\)/welcome.tsx')",
+      "Bash(cat \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/_layout.tsx\")",
+      "Bash(cat '/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/explore/index.tsx')",
+      "Bash(ls \"/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/\")",
+      "Bash(cat '/Users/kanwargauravpaul/MyStartup/Flock Travel/.claude/worktrees/tender-shaw/flock/app/\\(tabs\\)/planner.tsx')"
     ]
   }
 }

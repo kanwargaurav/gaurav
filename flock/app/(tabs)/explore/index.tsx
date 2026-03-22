@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, SafeAreaView, ActivityIndicator } from 'react-native';
+import {
+  View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput,
+  SafeAreaView, ActivityIndicator, ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../../lib/supabase';
+import { useTheme } from '../../../hooks/useTheme';
 
 type Destination = {
   id: string;
@@ -21,6 +25,7 @@ const TAGS = ['All', 'Romance', 'Food', 'Adventure', 'Culture', 'Nature', 'Solo'
 
 export default function Explore() {
   const router = useRouter();
+  const { theme, isDark } = useTheme();
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -47,52 +52,76 @@ export default function Explore() {
 
   const renderCard = ({ item }: { item: Destination }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, {
+        backgroundColor: theme.card,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.3 : 0.06,
+        shadowRadius: 12,
+        elevation: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
+      }]}
       onPress={() => router.push({ pathname: '/(tabs)/explore/[id]', params: { id: item.id } } as any)}
       activeOpacity={0.8}
     >
       <View style={styles.cardTop}>
-        <Text style={styles.cardEmoji}>{item.emoji}</Text>
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardName}>{item.place}</Text>
-          <Text style={styles.cardCountry}>{item.country}</Text>
+        <View style={[styles.emojiContainer, { backgroundColor: theme.accentMuted }]}>
+          <Text style={styles.cardEmoji}>{item.emoji}</Text>
         </View>
-        <View style={styles.ratingBadge}>
-          <Text style={styles.ratingText}>⭐ {item.rating}</Text>
+        <View style={styles.cardInfo}>
+          <Text style={[styles.cardName, { color: theme.text }]}>{item.place}</Text>
+          <Text style={[styles.cardCountry, { color: theme.textSecondary }]}>{item.country}</Text>
+        </View>
+        <View style={[styles.ratingBadge, { backgroundColor: theme.badge }]}>
+          <Text style={[styles.ratingText, { color: theme.warning }]}>⭐ {item.rating}</Text>
         </View>
       </View>
-      <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
+      <Text style={[styles.cardDesc, { color: theme.textSecondary }]} numberOfLines={2}>
+        {item.description}
+      </Text>
       <View style={styles.cardFooter}>
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{item.days_rec} days</Text>
-          <Text style={styles.metaDot}>·</Text>
-          <Text style={styles.metaText}>${(item.budget_usd ?? 0).toLocaleString()}</Text>
+          <Text style={[styles.metaText, { color: theme.textSecondary }]}>{item.days_rec} days</Text>
+          <Text style={[styles.metaDot, { color: theme.textTertiary }]}>·</Text>
+          <Text style={[styles.metaText, { color: theme.textSecondary }]}>${(item.budget_usd ?? 0).toLocaleString()}</Text>
         </View>
-        <View style={styles.cloneBadge}>
-          <Text style={styles.cloneText}>⚡ {(item.clone_count ?? 0).toLocaleString()}</Text>
+        <View style={[styles.cloneBadge, { backgroundColor: theme.accentMuted }]}>
+          <Text style={[styles.cloneText, { color: theme.accent }]}>⚡ {(item.clone_count ?? 0).toLocaleString()}</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Explore</Text>
-        <Text style={styles.headerSubtitle}>Where will your flock fly? 🐦</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Explore</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Where will your flock fly? 🐦</Text>
       </View>
 
-      <View style={styles.searchRow}>
+      {/* Search bar */}
+      <View style={[styles.searchRow, {
+        backgroundColor: theme.surface,
+        borderColor: theme.border,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.2 : 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+      }]}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder="Search destinations..."
-          placeholderTextColor="rgba(237,232,223,0.3)"
+          placeholderTextColor={theme.textTertiary}
           value={search}
           onChangeText={setSearch}
         />
       </View>
 
+      {/* Tag chips */}
       <FlatList
         data={TAGS}
         horizontal
@@ -100,22 +129,28 @@ export default function Explore() {
         keyExtractor={t => t}
         style={styles.tagList}
         contentContainerStyle={{ paddingHorizontal: 16 }}
-        renderItem={({ item: tag }) => (
-          <TouchableOpacity
-            style={[styles.tag, (selectedTag === tag || (!selectedTag && tag === 'All')) && styles.tagActive]}
-            onPress={() => setSelectedTag(tag === 'All' ? null : tag)}
-          >
-            <Text style={[styles.tagText, (selectedTag === tag || (!selectedTag && tag === 'All')) && styles.tagTextActive]}>
-              {tag}
-            </Text>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item: tag }) => {
+          const isActive = selectedTag === tag || (!selectedTag && tag === 'All');
+          return (
+            <TouchableOpacity
+              style={[styles.tag, {
+                backgroundColor: isActive ? theme.accent : theme.surfaceSecondary,
+                borderColor: isActive ? theme.accent : theme.border,
+              }]}
+              onPress={() => setSelectedTag(tag === 'All' ? null : tag)}
+            >
+              <Text style={[styles.tagText, { color: isActive ? '#fff' : theme.textSecondary }]}>
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
       />
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF5533" />
-          <Text style={styles.loadingText}>Loading destinations...</Text>
+          <ActivityIndicator size="large" color={theme.accent} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading destinations...</Text>
         </View>
       ) : (
         <FlatList
@@ -127,7 +162,7 @@ export default function Explore() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>🌍</Text>
-              <Text style={styles.emptyText}>No destinations match your search</Text>
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No destinations match your search</Text>
             </View>
           }
         />
@@ -136,40 +171,62 @@ export default function Explore() {
   );
 }
 
-const C = { bg: '#07090F', surface: '#0E1219', surfaceHigh: '#131926', text: '#EDE8DF', muted: 'rgba(237,232,223,0.5)', coral: '#FF5533', border: 'rgba(255,255,255,0.07)' };
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
-  headerTitle: { fontSize: 32, fontWeight: '800', color: C.text },
-  headerSubtitle: { fontSize: 14, color: C.muted, marginTop: 2 },
-  searchRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14 },
+  headerTitle: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5 },
+  headerSubtitle: { fontSize: 14, marginTop: 2 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+  },
   searchIcon: { marginRight: 8, fontSize: 14 },
-  searchInput: { flex: 1, paddingVertical: 12, color: C.text, fontSize: 15 },
-  tagList: { marginBottom: 12, flexGrow: 0 },
-  tag: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, backgroundColor: C.surface, marginRight: 8, borderWidth: 1, borderColor: C.border, alignSelf: 'flex-start' },
-  tagActive: { backgroundColor: C.coral, borderColor: C.coral },
-  tagText: { color: C.muted, fontSize: 13, fontWeight: '600' },
-  tagTextActive: { color: '#fff' },
+  searchInput: { flex: 1, paddingVertical: 13, fontSize: 15 },
+  tagList: { marginBottom: 14, flexGrow: 0 },
+  tag: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 100,
+    marginRight: 8,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  tagText: { fontSize: 13, fontWeight: '600' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  loadingText: { color: C.muted, fontSize: 14 },
+  loadingText: { fontSize: 14 },
   list: { paddingHorizontal: 16, paddingBottom: 24 },
-  card: { backgroundColor: C.surface, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: C.border },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
-  cardEmoji: { fontSize: 36, marginRight: 12 },
+  card: {
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 14,
+  },
+  cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, gap: 14 },
+  emojiContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardEmoji: { fontSize: 26 },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 18, fontWeight: '700', color: C.text },
-  cardCountry: { fontSize: 13, color: C.muted, marginTop: 2 },
-  ratingBadge: { backgroundColor: C.surfaceHigh, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  ratingText: { fontSize: 12, color: '#F5A020', fontWeight: '600' },
-  cardDesc: { fontSize: 13, color: C.muted, lineHeight: 19, marginBottom: 12 },
+  cardName: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
+  cardCountry: { fontSize: 13, marginTop: 2 },
+  ratingBadge: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  ratingText: { fontSize: 12, fontWeight: '700' },
+  cardDesc: { fontSize: 14, lineHeight: 20, marginBottom: 14 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 12, color: C.muted },
-  metaDot: { color: C.muted, marginHorizontal: 2 },
-  cloneBadge: { backgroundColor: 'rgba(255,85,51,0.15)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  cloneText: { color: C.coral, fontSize: 12, fontWeight: '700' },
+  metaText: { fontSize: 13, fontWeight: '500' },
+  metaDot: { marginHorizontal: 2 },
+  cloneBadge: { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 5 },
+  cloneText: { fontSize: 12, fontWeight: '700' },
   empty: { alignItems: 'center', paddingVertical: 60 },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyText: { color: C.muted, fontSize: 15 },
+  emptyText: { fontSize: 15 },
 });

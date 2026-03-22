@@ -1,29 +1,35 @@
 import { Tabs } from 'expo-router';
-import { Platform, Text } from 'react-native';
+import { Platform, Text, View } from 'react-native';
+import { useTheme } from '../../hooks/useTheme';
 
-const TAB_BAR_BG = '#0E1219';
-const ACTIVE = '#FF5533';
-const INACTIVE = 'rgba(237,232,223,0.4)';
-
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{emoji}</Text>;
+function TabIcon({ emoji, focused, theme }: { emoji: string; focused: boolean; theme: any }) {
+  return (
+    <View style={{ alignItems: 'center', gap: 4 }}>
+      <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
+      {focused && (
+        <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: theme.accent }} />
+      )}
+    </View>
+  );
 }
 
 export default function TabLayout() {
+  const { theme, isDark } = useTheme();
   return (
     <Tabs
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: TAB_BAR_BG,
-          borderTopColor: 'rgba(255,255,255,0.07)',
+          backgroundColor: theme.tabBar,
+          borderTopColor: theme.tabBarBorder,
           borderTopWidth: 1,
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-          paddingTop: 8,
-          height: Platform.OS === 'ios' ? 88 : 64,
+          paddingTop: 10,
+          height: Platform.OS === 'ios' ? 88 : 68,
+          ...(Platform.OS === 'web' ? { backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as any : {}),
         },
-        tabBarActiveTintColor: ACTIVE,
-        tabBarInactiveTintColor: INACTIVE,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.textTertiary,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 0.3 },
         headerShown: false,
       }}
     >
@@ -31,7 +37,7 @@ export default function TabLayout() {
         name="explore/index"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🧭" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🧭" focused={focused} theme={theme} />,
         }}
       />
       {/* Hide the dynamic detail route from tab bar */}
@@ -43,35 +49,35 @@ export default function TabLayout() {
         name="planner"
         options={{
           title: 'Plan',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="✏️" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="✨" focused={focused} theme={theme} />,
         }}
       />
       <Tabs.Screen
         name="vibe"
         options={{
           title: 'Vibe',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💫" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="💫" focused={focused} theme={theme} />,
         }}
       />
       <Tabs.Screen
         name="group"
         options={{
           title: 'Group',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👥" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👥" focused={focused} theme={theme} />,
         }}
       />
       <Tabs.Screen
         name="memories"
         options={{
           title: 'Memories',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📸" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="📸" focused={focused} theme={theme} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🐦" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🐦" focused={focused} theme={theme} />,
         }}
       />
     </Tabs>

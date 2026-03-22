@@ -1,90 +1,167 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../../hooks/useTheme';
+
+const { width } = Dimensions.get('window');
 
 export default function Welcome() {
   const router = useRouter();
+  const { theme, isDark, toggleTheme } = useTheme();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <StatusBar style="light" />
+    <ScrollView
+      style={{ flex: 1, backgroundColor: theme.bg }}
+      contentContainerStyle={{ paddingBottom: 48 }}
+    >
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      {/* Logo */}
-      <View style={styles.hero}>
-        <Text style={styles.logoEmoji}>🐦</Text>
-        <Text style={styles.logoText}>FLOCK</Text>
-        <Text style={styles.tagline}>Your world. Your flock. Fly together.</Text>
+      {/* Theme toggle */}
+      <View style={{ alignItems: 'flex-end', paddingTop: 56, paddingRight: 24 }}>
+        <TouchableOpacity
+          onPress={toggleTheme}
+          style={{
+            backgroundColor: theme.surfaceSecondary,
+            borderRadius: 20,
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            borderWidth: 1,
+            borderColor: theme.border,
+          }}
+        >
+          <Text style={{ fontSize: 14, color: theme.textSecondary, fontWeight: '500' }}>
+            {isDark ? '☀️ Light' : '🌙 Dark'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Feature highlights */}
-      <View style={styles.card}>
-        <View style={styles.featureRow}>
-          <Text style={styles.featureIcon}>✈️</Text>
-          <View style={styles.featureText}>
-            <Text style={styles.featureTitle}>Explore free, no sign-up</Text>
-            <Text style={styles.featureDesc}>Browse thousands of community trip itineraries</Text>
-          </View>
+      {/* Hero */}
+      <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 48, paddingHorizontal: 24 }}>
+        <View style={{
+          width: 80,
+          height: 80,
+          borderRadius: 24,
+          backgroundColor: theme.accentMuted,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 24,
+          shadowColor: theme.accent,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.25,
+          shadowRadius: 20,
+          elevation: 8,
+        }}>
+          <Text style={{ fontSize: 40 }}>🐦</Text>
         </View>
-        <View style={styles.divider} />
-        <View style={styles.featureRow}>
-          <Text style={styles.featureIcon}>🤖</Text>
-          <View style={styles.featureText}>
-            <Text style={styles.featureTitle}>AI trip planner</Text>
-            <Text style={styles.featureDesc}>Describe your dream trip, get a full itinerary instantly</Text>
+        <Text style={{
+          fontSize: 52,
+          fontWeight: '800',
+          color: theme.text,
+          letterSpacing: -2,
+          marginBottom: 12,
+        }}>
+          FLOCK
+        </Text>
+        <Text style={{
+          fontSize: 17,
+          color: theme.textSecondary,
+          textAlign: 'center',
+          lineHeight: 24,
+          maxWidth: 280,
+        }}>
+          Your world. Your flock.{'\n'}Fly together.
+        </Text>
+      </View>
+
+      {/* Features */}
+      <View style={{ paddingHorizontal: 20, gap: 12, marginBottom: 40 }}>
+        {[
+          { icon: '🧭', title: 'Explore free, no sign-up', desc: 'Browse curated destinations from around the world' },
+          { icon: '✨', title: 'AI trip planner', desc: 'Describe your dream trip, get a full itinerary instantly' },
+          { icon: '👥', title: 'Group travel, simplified', desc: 'AI finds the perfect destination for everyone' },
+        ].map((f, i) => (
+          <View
+            key={i}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 16,
+              backgroundColor: theme.surface,
+              borderRadius: 20,
+              padding: 20,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.06,
+              shadowRadius: 12,
+              elevation: 3,
+              borderWidth: isDark ? 1 : 0,
+              borderColor: theme.border,
+            }}
+          >
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 14,
+              backgroundColor: theme.accentMuted,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Text style={{ fontSize: 22 }}>{f.icon}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: '600', color: theme.text, marginBottom: 3 }}>
+                {f.title}
+              </Text>
+              <Text style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 18 }}>
+                {f.desc}
+              </Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.featureRow}>
-          <Text style={styles.featureIcon}>👥</Text>
-          <View style={styles.featureText}>
-            <Text style={styles.featureTitle}>Group travel, simplified</Text>
-            <Text style={styles.featureDesc}>AI negotiates the perfect destination for everyone</Text>
-          </View>
-        </View>
+        ))}
       </View>
 
       {/* CTAs */}
-      <TouchableOpacity
-        style={styles.primaryBtn}
-        onPress={() => router.replace('/(tabs)/explore')}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.primaryBtnText}>Explore Free  →</Text>
-      </TouchableOpacity>
+      <View style={{ paddingHorizontal: 20, gap: 12 }}>
+        <TouchableOpacity
+          style={{
+            backgroundColor: theme.accent,
+            borderRadius: 16,
+            paddingVertical: 18,
+            alignItems: 'center',
+            shadowColor: theme.accent,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+            elevation: 6,
+          }}
+          onPress={() => router.replace('/(tabs)/explore')}
+          activeOpacity={0.85}
+        >
+          <Text style={{ color: '#fff', fontSize: 17, fontWeight: '700', letterSpacing: 0.3 }}>
+            Explore Free →
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.secondaryBtn}
-        onPress={() => router.push('/(auth)/login')}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.secondaryBtnText}>Sign In</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            backgroundColor: theme.surface,
+            borderRadius: 16,
+            paddingVertical: 18,
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: theme.border,
+          }}
+          onPress={() => router.push('/(auth)/login')}
+          activeOpacity={0.85}
+        >
+          <Text style={{ color: theme.text, fontSize: 17, fontWeight: '600' }}>Sign In</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.disclaimer}>No account required to explore destinations</Text>
+        <Text style={{ textAlign: 'center', color: theme.textTertiary, fontSize: 13, marginTop: 4 }}>
+          No account required to explore
+        </Text>
+      </View>
     </ScrollView>
   );
 }
-
-const C = { bg: '#07090F', surface: '#0E1219', text: '#EDE8DF', muted: 'rgba(237,232,223,0.5)', coral: '#FF5533', border: 'rgba(255,255,255,0.07)' };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
-  content: { padding: 24, paddingTop: 80, paddingBottom: 40 },
-  hero: { alignItems: 'center', marginBottom: 40 },
-  logoEmoji: { fontSize: 64, marginBottom: 12 },
-  logoText: { fontSize: 48, fontWeight: '700', color: C.text, letterSpacing: 4, marginBottom: 12 },
-  tagline: { fontSize: 16, color: C.muted, textAlign: 'center', fontStyle: 'italic' },
-  card: { backgroundColor: C.surface, borderRadius: 20, padding: 24, marginBottom: 32, borderWidth: 1, borderColor: C.border },
-  featureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
-  featureIcon: { fontSize: 28 },
-  featureText: { flex: 1 },
-  featureTitle: { fontSize: 15, fontWeight: '600', color: C.text, marginBottom: 4 },
-  featureDesc: { fontSize: 13, color: C.muted, lineHeight: 18 },
-  divider: { height: 1, backgroundColor: C.border, marginVertical: 20 },
-  primaryBtn: { backgroundColor: C.coral, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginBottom: 12 },
-  primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  secondaryBtn: { borderWidth: 1.5, borderColor: C.coral, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginBottom: 20 },
-  secondaryBtnText: { color: C.coral, fontSize: 16, fontWeight: '600' },
-  disclaimer: { textAlign: 'center', color: C.muted, fontSize: 12 },
-});

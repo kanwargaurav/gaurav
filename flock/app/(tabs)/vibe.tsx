@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Act
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
 import { Vibes } from '../../constants/vibes';
 import { Personas } from '../../constants/personas';
 
@@ -28,6 +29,7 @@ const BUDGETS = [
 export default function VibeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { theme, isDark } = useTheme();
   const [step, setStep] = useState(0);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
@@ -86,63 +88,81 @@ export default function VibeScreen() {
     setMatches([]);
   };
 
+  const cardShadow = {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.25 : 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+    borderWidth: isDark ? 1 : 0,
+    borderColor: theme.border,
+  };
+
   if (step === 3) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
         <ScrollView contentContainerStyle={styles.resultContainer} showsVerticalScrollIndicator={false}>
           <Text style={styles.resultEmoji}>🐦</Text>
-          <Text style={styles.resultTitle}>Your Vibe DNA</Text>
-          <Text style={styles.resultSub}>{user ? '✅ Saved to your profile' : 'Sign in to save your vibe'}</Text>
+          <Text style={[styles.resultTitle, { color: theme.text }]}>Your Vibe DNA</Text>
+          <Text style={[styles.resultSub, { color: theme.textSecondary }]}>
+            {user ? '✅ Saved to your profile' : 'Sign in to save your vibe'}
+          </Text>
 
-          <View style={styles.dnaCard}>
+          <View style={[styles.dnaCard, { backgroundColor: theme.surface, ...cardShadow }]}>
             <View style={styles.dnaSection}>
-              <Text style={styles.dnaLabel}>Travel Style</Text>
+              <Text style={[styles.dnaLabel, { color: theme.textSecondary }]}>Travel Style</Text>
               <View style={styles.dnaTags}>
                 {selectedPersonas.map(id => (
-                  <View key={id} style={styles.dnaTag}>
-                    <Text style={styles.dnaTagText}>{Personas.find(p => p.id === id)?.emoji} {Personas.find(p => p.id === id)?.name}</Text>
+                  <View key={id} style={[styles.dnaTag, { backgroundColor: theme.accentMuted }]}>
+                    <Text style={[styles.dnaTagText, { color: theme.accent }]}>
+                      {Personas.find(p => p.id === id)?.emoji} {Personas.find(p => p.id === id)?.name}
+                    </Text>
                   </View>
                 ))}
               </View>
             </View>
-            <View style={styles.dnaDivider} />
+            <View style={[styles.dnaDivider, { backgroundColor: theme.border }]} />
             <View style={styles.dnaSection}>
-              <Text style={styles.dnaLabel}>Top Vibes</Text>
+              <Text style={[styles.dnaLabel, { color: theme.textSecondary }]}>Top Vibes</Text>
               <View style={styles.dnaTags}>
                 {selectedVibes.slice(0, 6).map(id => (
-                  <View key={id} style={styles.dnaTag}>
-                    <Text style={styles.dnaTagText}>{Vibes.find(v => v.id === id)?.emoji} {Vibes.find(v => v.id === id)?.name}</Text>
+                  <View key={id} style={[styles.dnaTag, { backgroundColor: theme.accentMuted }]}>
+                    <Text style={[styles.dnaTagText, { color: theme.accent }]}>
+                      {Vibes.find(v => v.id === id)?.emoji} {Vibes.find(v => v.id === id)?.name}
+                    </Text>
                   </View>
                 ))}
               </View>
             </View>
-            <View style={styles.dnaDivider} />
+            <View style={[styles.dnaDivider, { backgroundColor: theme.border }]} />
             <View style={styles.dnaSection}>
-              <Text style={styles.dnaLabel}>Budget</Text>
-              <Text style={styles.dnaValue}>{BUDGETS.find(b => b.id === budget)?.label ?? '—'}</Text>
+              <Text style={[styles.dnaLabel, { color: theme.textSecondary }]}>Budget</Text>
+              <Text style={[styles.dnaValue, { color: theme.text }]}>
+                {BUDGETS.find(b => b.id === budget)?.label ?? '—'}
+              </Text>
             </View>
           </View>
 
           {matches.length > 0 && (
             <View style={styles.matchSection}>
-              <Text style={styles.matchTitle}>🎯 Perfect matches for you</Text>
-              <Text style={styles.matchSub}>Based on your vibe DNA</Text>
+              <Text style={[styles.matchTitle, { color: theme.text }]}>🎯 Perfect matches for you</Text>
+              <Text style={[styles.matchSub, { color: theme.textSecondary }]}>Based on your vibe DNA</Text>
               {matches.map(dest => (
                 <TouchableOpacity
                   key={dest.id}
-                  style={styles.matchCard}
+                  style={[styles.matchCard, { backgroundColor: theme.surface, ...cardShadow }]}
                   onPress={() => router.push({ pathname: '/(tabs)/explore/[id]', params: { id: dest.id } } as any)}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.matchEmoji}>{dest.emoji}</Text>
                   <View style={styles.matchInfo}>
-                    <Text style={styles.matchName}>{dest.place}</Text>
-                    <Text style={styles.matchCountry}>{dest.country}</Text>
-                    <Text style={styles.matchDesc} numberOfLines={1}>{dest.description}</Text>
+                    <Text style={[styles.matchName, { color: theme.text }]}>{dest.place}</Text>
+                    <Text style={[styles.matchCountry, { color: theme.textSecondary }]}>{dest.country}</Text>
+                    <Text style={[styles.matchDesc, { color: theme.textSecondary }]} numberOfLines={1}>{dest.description}</Text>
                   </View>
                   <View style={styles.matchMeta}>
-                    <Text style={styles.matchRating}>⭐ {dest.rating}</Text>
-                    <Text style={styles.matchBudget}>${(dest.budget_usd / 1000).toFixed(1)}k</Text>
+                    <Text style={[styles.matchRating, { color: theme.warning }]}>⭐ {dest.rating}</Text>
+                    <Text style={[styles.matchBudget, { color: theme.accent }]}>${(dest.budget_usd / 1000).toFixed(1)}k</Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -150,13 +170,28 @@ export default function VibeScreen() {
           )}
 
           {!user && (
-            <TouchableOpacity style={styles.saveBtn} onPress={() => router.push('/(auth)/signup')} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={[styles.saveBtn, {
+                backgroundColor: theme.accent,
+                shadowColor: theme.accent,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 10,
+                elevation: 5,
+              }]}
+              onPress={() => router.push('/(auth)/signup')}
+              activeOpacity={0.85}
+            >
               <Text style={styles.saveBtnText}>🔒 Save your Vibe DNA</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.resetBtn} onPress={handleReset} activeOpacity={0.85}>
-            <Text style={styles.resetBtnText}>Update My Vibe</Text>
+          <TouchableOpacity
+            style={[styles.resetBtn, { borderColor: theme.border }]}
+            onPress={handleReset}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.resetBtnText, { color: theme.textSecondary }]}>Update My Vibe</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -164,34 +199,55 @@ export default function VibeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Progress dots */}
         <View style={styles.progressRow}>
           {[0, 1, 2].map(i => (
-            <View key={i} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
+            <View
+              key={i}
+              style={[styles.progressDot, {
+                backgroundColor: i <= step ? theme.accent : theme.border,
+                width: i <= step ? 24 : 8,
+              }]}
+            />
           ))}
         </View>
 
         {step === 0 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Who do you travel as?</Text>
-            <Text style={styles.stepSub}>Select all that apply</Text>
+            <Text style={[styles.stepTitle, { color: theme.text }]}>Who do you travel as?</Text>
+            <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Select all that apply</Text>
             <View style={styles.personaGrid}>
               {Personas.map(p => (
                 <TouchableOpacity
                   key={p.id}
-                  style={[styles.personaCard, selectedPersonas.includes(p.id) && { borderColor: p.color, backgroundColor: p.color + '15' }]}
+                  style={[styles.personaCard, {
+                    backgroundColor: selectedPersonas.includes(p.id) ? p.color + '15' : theme.surface,
+                    borderColor: selectedPersonas.includes(p.id) ? p.color : theme.border,
+                    ...cardShadow,
+                  }]}
                   onPress={() => togglePersona(p.id)}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.personaEmoji}>{p.emoji}</Text>
-                  <Text style={[styles.personaName, selectedPersonas.includes(p.id) && { color: p.color }]}>{p.name}</Text>
-                  <Text style={styles.personaDesc}>{p.description}</Text>
+                  <Text style={[styles.personaName, { color: selectedPersonas.includes(p.id) ? p.color : theme.text }]}>
+                    {p.name}
+                  </Text>
+                  <Text style={[styles.personaDesc, { color: theme.textSecondary }]}>{p.description}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TouchableOpacity
-              style={[styles.primaryBtn, selectedPersonas.length === 0 && styles.primaryBtnDisabled]}
+              style={[styles.primaryBtn, {
+                backgroundColor: theme.accent,
+                opacity: selectedPersonas.length === 0 ? 0.4 : 1,
+                shadowColor: theme.accent,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: selectedPersonas.length === 0 ? 0 : 0.3,
+                shadowRadius: 10,
+                elevation: selectedPersonas.length === 0 ? 0 : 5,
+              }]}
               disabled={selectedPersonas.length === 0}
               onPress={() => setStep(1)}
             >
@@ -202,27 +258,36 @@ export default function VibeScreen() {
 
         {step === 1 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>What lights you up?</Text>
-            <Text style={styles.stepSub}>Pick your travel vibes</Text>
+            <Text style={[styles.stepTitle, { color: theme.text }]}>What lights you up?</Text>
+            <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Pick your travel vibes</Text>
             <View style={styles.vibeGrid}>
               {Vibes.map(v => (
                 <TouchableOpacity
                   key={v.id}
-                  style={[styles.vibeCard, selectedVibes.includes(v.id) && { borderColor: v.color, backgroundColor: v.color + '20' }]}
+                  style={[styles.vibeCard, {
+                    backgroundColor: selectedVibes.includes(v.id) ? v.color + '20' : theme.surface,
+                    borderColor: selectedVibes.includes(v.id) ? v.color : theme.border,
+                    ...cardShadow,
+                  }]}
                   onPress={() => toggleVibe(v.id)}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.vibeEmoji}>{v.emoji}</Text>
-                  <Text style={[styles.vibeName, selectedVibes.includes(v.id) && { color: v.color }]}>{v.name}</Text>
+                  <Text style={[styles.vibeName, { color: selectedVibes.includes(v.id) ? v.color : theme.text }]}>
+                    {v.name}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
             <View style={styles.btnRow}>
-              <TouchableOpacity style={styles.backBtn} onPress={() => setStep(0)}>
-                <Text style={styles.backBtnText}>← Back</Text>
+              <TouchableOpacity style={[styles.backBtn, { borderColor: theme.border }]} onPress={() => setStep(0)}>
+                <Text style={[styles.backBtnText, { color: theme.textSecondary }]}>← Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.primaryBtn, styles.primaryBtnFlex, selectedVibes.length === 0 && styles.primaryBtnDisabled]}
+                style={[styles.primaryBtn, styles.primaryBtnFlex, {
+                  backgroundColor: theme.accent,
+                  opacity: selectedVibes.length === 0 ? 0.4 : 1,
+                }]}
                 disabled={selectedVibes.length === 0}
                 onPress={() => setStep(2)}
               >
@@ -234,32 +299,38 @@ export default function VibeScreen() {
 
         {step === 2 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>What's your travel budget?</Text>
-            <Text style={styles.stepSub}>Per person, per trip</Text>
+            <Text style={[styles.stepTitle, { color: theme.text }]}>What's your travel budget?</Text>
+            <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Per person, per trip</Text>
             {BUDGETS.map(b => (
               <TouchableOpacity
                 key={b.id}
-                style={[styles.budgetCard, budget === b.id && styles.budgetCardActive]}
+                style={[styles.budgetCard, {
+                  backgroundColor: budget === b.id ? theme.accentMuted : theme.surface,
+                  borderColor: budget === b.id ? theme.accent : theme.border,
+                  ...cardShadow,
+                }]}
                 onPress={() => setBudget(b.id)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.budgetLabel}>{b.label}</Text>
-                <Text style={styles.budgetDesc}>{b.desc}</Text>
+                <Text style={[styles.budgetLabel, { color: theme.text }]}>{b.label}</Text>
+                <Text style={[styles.budgetDesc, { color: theme.textSecondary }]}>{b.desc}</Text>
               </TouchableOpacity>
             ))}
             <View style={styles.btnRow}>
-              <TouchableOpacity style={styles.backBtn} onPress={() => setStep(1)}>
-                <Text style={styles.backBtnText}>← Back</Text>
+              <TouchableOpacity style={[styles.backBtn, { borderColor: theme.border }]} onPress={() => setStep(1)}>
+                <Text style={[styles.backBtnText, { color: theme.textSecondary }]}>← Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.primaryBtn, styles.primaryBtnFlex, (!budget || loadingResults) && styles.primaryBtnDisabled]}
+                style={[styles.primaryBtn, styles.primaryBtnFlex, {
+                  backgroundColor: theme.accent,
+                  opacity: (!budget || loadingResults) ? 0.4 : 1,
+                }]}
                 disabled={!budget || loadingResults}
                 onPress={handleFinish}
               >
                 {loadingResults
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.primaryBtnText}>See My Vibe DNA ✨</Text>
-                }
+                  : <Text style={styles.primaryBtnText}>See My Vibe DNA ✨</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -269,62 +340,57 @@ export default function VibeScreen() {
   );
 }
 
-const C = { bg: '#07090F', surface: '#0E1219', text: '#EDE8DF', muted: 'rgba(237,232,223,0.5)', coral: '#FF5533', border: 'rgba(255,255,255,0.10)' };
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1 },
   progressRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 20 },
-  progressDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.border },
-  progressDotActive: { backgroundColor: C.coral, width: 24 },
+  progressDot: { height: 8, borderRadius: 4 },
   stepContainer: { paddingHorizontal: 20, paddingBottom: 40 },
-  stepTitle: { fontSize: 28, fontWeight: '800', color: C.text, marginBottom: 6 },
-  stepSub: { fontSize: 14, color: C.muted, marginBottom: 24 },
+  stepTitle: { fontSize: 30, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 },
+  stepSub: { fontSize: 14, marginBottom: 24 },
   personaGrid: { gap: 10, marginBottom: 24 },
-  personaCard: { backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1.5, borderColor: C.border },
+  personaCard: { borderRadius: 16, padding: 16, borderWidth: 1.5 },
   personaEmoji: { fontSize: 28, marginBottom: 8 },
-  personaName: { fontSize: 16, fontWeight: '700', color: C.text, marginBottom: 4 },
-  personaDesc: { fontSize: 12, color: C.muted },
+  personaName: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  personaDesc: { fontSize: 12 },
   vibeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
-  vibeCard: { width: '31%', backgroundColor: C.surface, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: C.border },
+  vibeCard: { width: '31%', borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 1.5 },
   vibeEmoji: { fontSize: 24, marginBottom: 6 },
-  vibeName: { fontSize: 11, fontWeight: '600', color: C.text, textAlign: 'center' },
-  budgetCard: { backgroundColor: C.surface, borderRadius: 14, padding: 18, marginBottom: 10, borderWidth: 1.5, borderColor: C.border },
-  budgetCardActive: { borderColor: C.coral, backgroundColor: 'rgba(255,85,51,0.1)' },
-  budgetLabel: { fontSize: 16, fontWeight: '700', color: C.text },
-  budgetDesc: { fontSize: 13, color: C.muted, marginTop: 4 },
+  vibeName: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  budgetCard: { borderRadius: 16, padding: 18, marginBottom: 10, borderWidth: 1.5 },
+  budgetLabel: { fontSize: 16, fontWeight: '700' },
+  budgetDesc: { fontSize: 13, marginTop: 4 },
   btnRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
-  backBtn: { borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingVertical: 15, paddingHorizontal: 20, justifyContent: 'center' },
-  backBtnText: { color: C.muted, fontWeight: '600' },
-  primaryBtn: { backgroundColor: C.coral, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  backBtn: { borderWidth: 1, borderRadius: 16, paddingVertical: 15, paddingHorizontal: 20, justifyContent: 'center' },
+  backBtnText: { fontWeight: '600' },
+  primaryBtn: { borderRadius: 16, paddingVertical: 18, alignItems: 'center', marginTop: 8 },
   primaryBtnFlex: { flex: 1, marginTop: 0 },
-  primaryBtnDisabled: { opacity: 0.4 },
   primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   resultContainer: { padding: 24, alignItems: 'center', paddingBottom: 48 },
   resultEmoji: { fontSize: 64, marginBottom: 16, marginTop: 20 },
-  resultTitle: { fontSize: 32, fontWeight: '800', color: C.text, marginBottom: 6 },
-  resultSub: { fontSize: 14, color: C.muted, marginBottom: 28 },
-  dnaCard: { backgroundColor: C.surface, borderRadius: 20, padding: 24, width: '100%', borderWidth: 1, borderColor: C.border, marginBottom: 32 },
+  resultTitle: { fontSize: 34, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 },
+  resultSub: { fontSize: 14, marginBottom: 28 },
+  dnaCard: { borderRadius: 20, padding: 24, width: '100%', marginBottom: 32 },
   dnaSection: { marginBottom: 4 },
-  dnaLabel: { fontSize: 12, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  dnaLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
   dnaTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  dnaTag: { backgroundColor: 'rgba(255,85,51,0.15)', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 6 },
-  dnaTagText: { color: C.coral, fontSize: 13, fontWeight: '600' },
-  dnaValue: { color: C.text, fontSize: 15, fontWeight: '600' },
-  dnaDivider: { height: 1, backgroundColor: C.border, marginVertical: 16 },
+  dnaTag: { borderRadius: 100, paddingHorizontal: 12, paddingVertical: 6 },
+  dnaTagText: { fontSize: 13, fontWeight: '600' },
+  dnaValue: { fontSize: 15, fontWeight: '600' },
+  dnaDivider: { height: 1, marginVertical: 16 },
   matchSection: { width: '100%', marginBottom: 24 },
-  matchTitle: { fontSize: 20, fontWeight: '700', color: C.text, marginBottom: 4 },
-  matchSub: { fontSize: 13, color: C.muted, marginBottom: 16 },
-  matchCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, gap: 12 },
+  matchTitle: { fontSize: 20, fontWeight: '700', marginBottom: 4 },
+  matchSub: { fontSize: 13, marginBottom: 16 },
+  matchCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 14, marginBottom: 10, gap: 12 },
   matchEmoji: { fontSize: 32 },
   matchInfo: { flex: 1 },
-  matchName: { fontSize: 16, fontWeight: '700', color: C.text },
-  matchCountry: { fontSize: 12, color: C.muted, marginTop: 2 },
-  matchDesc: { fontSize: 12, color: C.muted, marginTop: 4 },
+  matchName: { fontSize: 16, fontWeight: '700' },
+  matchCountry: { fontSize: 12, marginTop: 2 },
+  matchDesc: { fontSize: 12, marginTop: 4 },
   matchMeta: { alignItems: 'flex-end', gap: 4 },
-  matchRating: { fontSize: 12, color: '#F5A020', fontWeight: '600' },
-  matchBudget: { fontSize: 12, color: C.coral, fontWeight: '600' },
-  saveBtn: { backgroundColor: C.coral, borderRadius: 14, paddingVertical: 16, alignItems: 'center', width: '100%', marginBottom: 12 },
+  matchRating: { fontSize: 12, fontWeight: '600' },
+  matchBudget: { fontSize: 12, fontWeight: '600' },
+  saveBtn: { borderRadius: 16, paddingVertical: 16, alignItems: 'center', width: '100%', marginBottom: 12 },
   saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  resetBtn: { borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingVertical: 16, alignItems: 'center', width: '100%' },
-  resetBtnText: { color: C.muted, fontSize: 15, fontWeight: '600' },
+  resetBtn: { borderWidth: 1, borderRadius: 16, paddingVertical: 16, alignItems: 'center', width: '100%' },
+  resetBtnText: { fontSize: 15, fontWeight: '600' },
 });
