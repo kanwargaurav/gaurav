@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput,
-  SafeAreaView, ActivityIndicator, ScrollView,
+  SafeAreaView, ActivityIndicator, ScrollView, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../../lib/supabase';
@@ -122,17 +122,17 @@ export default function Explore() {
       </View>
 
       {/* Tag chips */}
-      <FlatList
-        data={TAGS}
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        keyExtractor={t => t}
         style={styles.tagList}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        renderItem={({ item: tag }) => {
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4, alignItems: 'center' }}
+      >
+        {TAGS.map(tag => {
           const isActive = selectedTag === tag || (!selectedTag && tag === 'All');
           return (
             <TouchableOpacity
+              key={tag}
               style={[styles.tag, {
                 backgroundColor: isActive ? theme.accent : theme.surfaceSecondary,
                 borderColor: isActive ? theme.accent : theme.border,
@@ -144,8 +144,8 @@ export default function Explore() {
               </Text>
             </TouchableOpacity>
           );
-        }}
-      />
+        })}
+      </ScrollView>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -187,14 +187,13 @@ const styles = StyleSheet.create({
   },
   searchIcon: { marginRight: 8, fontSize: 14 },
   searchInput: { flex: 1, paddingVertical: 13, fontSize: 15 },
-  tagList: { marginBottom: 14, flexGrow: 0 },
+  tagList: { marginBottom: 16, flexGrow: 0, maxHeight: 52 },
   tag: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
     borderRadius: 100,
     marginRight: 8,
     borderWidth: 1,
-    alignSelf: 'flex-start',
   },
   tagText: { fontSize: 13, fontWeight: '600' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
